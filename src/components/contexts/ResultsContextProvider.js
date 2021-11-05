@@ -1,8 +1,9 @@
-import { PreviousMap } from "postcss";
+
 import React,{createContext, useContext, useState} from "react";
-import axios from "axios";
+
 
 const ResultContext = createContext();
+const baseUrl= `https://google-search3.p.rapidapi.com/api/v1`;
 
 export const ResultsContextProvider = ({children})=>{
     const [result, setResult] = useState([]);
@@ -11,29 +12,28 @@ export const ResultsContextProvider = ({children})=>{
 
     const getResult = async(type)=>{
         setIsLoading(true)
-        
-        var axios = require("axios").default;
-        var options = {
-        method: 'GET',
-        url: 'https://google-search1.p.rapidapi.com/google-search',
-        params: {hl: 'en', q:`${type}`, gl: 'us'},
-        headers: {
-            'x-rapidapi-host': 'google-search1.p.rapidapi.com',
-            'x-rapidapi-key': 'd6f22a5797msh48e0b7b2aff05cfp1b3ee9jsn56263f38024d'
+        try{
+            const response = await fetch(`${baseUrl}${type}`, {
+                method:'GET',
+                headers:{
+                    "x-user-agent": "desktop",
+                    "x-rapidapi-host": "google-search3.p.rapidapi.com",
+                    "x-rapidapi-key": "d6f22a5797msh48e0b7b2aff05cfp1b3ee9jsn56263f38024d"
+            }});
+
+            const data = await response.json();
+            if(type.includes("/news")){
+                setResult(data.entries)
+            } else if(type.includes("/images")){
+                setResult(data.image_results); 
+            }else{
+                setResult(data.results); 
+            }
+        }catch{
+            return null;
         }
-        };
-
-        axios.request(options).then(function (response) {
-            setResult(response.data);
-        }).catch(function (error) {
-            console.error(error);
-        });
-
+          setIsLoading(false);
         
-        
-        
-        
-        setIsLoading(false);
     }
     return(
         <ResultContext.Provider value={{getResult, result, isLoading, searchTerm, setSearchTerm}}>
